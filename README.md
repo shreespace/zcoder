@@ -7,9 +7,9 @@ How to setup the project?
 <br>
 3.) Open the terminal and write cd frontend-next
 <br>
-4.) write command npm i and then npm run dev to run the frontend on port:3000
+4.) write command npm install and then npm run dev to run the frontend on port:3000
 <br>
-5.) then write command cd backend and run the command npm i and node server.js to run the backend
+5.) then write command cd backend and run the command npm install and node index.js to run the backend
 <br>
 6.) Signup and login 
 <br>
