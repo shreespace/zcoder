@@ -1,55 +1,57 @@
 import Link from "next/link";
+
 const Card = ({ problem }) => {
-    const { title, name, date, _id } = problem;
-    const tags = problem.tag || [];
-    console.log(title, name, date, tags);
-    const currentTime = new Date();
-    const problemTime = new Date(date);
-    const timeDifference = Math.abs(currentTime - problemTime);
-    const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-    const hoursDifference = Math.floor(
-        (timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-    );
-    const minutesDifference = Math.floor(
-        (timeDifference % (1000 * 60 * 60)) / (1000 * 60)
-    );
+  const { title, name, date, _id } = problem;
+  const tags = problem.tag || [];
 
-    let timeAgo = `${daysDifference} days ago`;
-    if (daysDifference == 0 && hoursDifference == 0 && minutesDifference < 2) {
-        timeAgo = `Just Now`;
-    } else if (daysDifference == 0 && hoursDifference == 0) {
-        timeAgo = `${minutesDifference} minutes ago`;
-    } else if (daysDifference == 0) {
-        timeAgo = `${hoursDifference} hours ago`;
-    }
+  const currentTime = new Date();
+  const problemTime = new Date(date);
+  const timeDifference = Math.abs(currentTime - problemTime);
+  const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+  const hoursDifference = Math.floor(
+    (timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+  );
+  const minutesDifference = Math.floor(
+    (timeDifference % (1000 * 60 * 60)) / (1000 * 60)
+  );
 
-    return (
-        <Link
-            href={`/question/${_id}`}
-            className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow md:flex-row  hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 my-1"
-        >
-            <div className="flex flex-col justify-between p-4 leading-normal">
-                <h6 className="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">
-                    {title}
-                </h6>
-                <div className="flex flex-wrap mt-0">
-                    {tags.map((tag, index) => (
-                        <span
-                            key={index}
-                            className="bg-blue-100 text-blue-800 text-small font-medium me-2 px-2.5 py-1.5 rounded dark:bg-blue-900 dark:text-blue-300 uppercase"
-                        >
-                            {tag}
-                        </span>
-                    ))}
-                </div>
-                <div className="flex items-center mt-4">
-                    <div className="name text-2 font-medium dark:text-white">{name}</div>
-                    <div className="asktime text-1 font-light  dark:text-gray-300">
-                        - asked {timeAgo}
-                    </div>
-                </div>
-            </div>
-        </Link>
-    );
+  let timeAgo = `${daysDifference} days ago`;
+  if (daysDifference === 0 && hoursDifference === 0 && minutesDifference < 2) {
+    timeAgo = `Just now`;
+  } else if (daysDifference === 0 && hoursDifference === 0) {
+    timeAgo = `${minutesDifference} minutes ago`;
+  } else if (daysDifference === 0) {
+    timeAgo = `${hoursDifference} hours ago`;
+  }
+
+  return (
+    <Link
+      href={`/question/${_id}`}
+      className="flex flex-col md:flex-row items-start w-full border rounded-xl shadow-sm bg-white hover:bg-[#EAE4D5] transition duration-200 my-2"
+      style={{ borderColor: "#B6B09F" }}
+    >
+      <div className="flex flex-col justify-between w-full p-4">
+        <h6 className="text-xl font-semibold text-black mb-2">{title}</h6>
+
+        <div className="flex flex-wrap gap-2 mt-1">
+          {tags.map((tag, index) => (
+            <span
+              key={index}
+              className="text-xs px-3 py-1 rounded-full font-medium uppercase"
+              style={{ backgroundColor: "#B6B09F", color: "#FFFFFF" }}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+
+        <div className="flex items-center mt-4 text-sm text-gray-700">
+          <span className="font-medium text-black">{name}</span>
+          <span className="ml-1 text-gray-600">— asked {timeAgo}</span>
+        </div>
+      </div>
+    </Link>
+  );
 };
+
 export default Card;

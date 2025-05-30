@@ -2,18 +2,23 @@ import React from "react";
 
 const CustomInput = ({ customInput, setCustomInput }) => {
   return (
-    <>
-      {" "}
-      <textarea
-        rows="5"
-        value={customInput}
-        onChange={(e) => setCustomInput(e.target.value)}
-        placeholder={`Custom input`}
-        className={
-          "focus:outline-none w-full border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 transition duration-200 bg-white mt-2"
-        }
-      ></textarea>
-    </>
+    <textarea
+      rows="5"
+      value={customInput}
+      onChange={(e) => setCustomInput(e.target.value)}
+      placeholder="Custom input"
+      className="w-full mt-2 resize-vertical text-sm"
+      style={{
+        border: "2px solid #B6B09F",
+        borderRadius: "1rem",
+        padding: "0.75rem 1rem",
+        backgroundColor: "#FFFFFF",
+        color: "#000000",
+        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
+        fontFamily: "inherit",
+        outline: "none",
+      }}
+    />
   );
 };
 

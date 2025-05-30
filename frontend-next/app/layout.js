@@ -1,18 +1,23 @@
+// app/layout.js
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Navbar from "./components/ui/Navbar";
+import ClientLayout from "./ClientLayout";
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
   title: "Zcoder",
-  description: "An Online Coding Platform with online code editor and built in live chat room",
-  //add a logo
+  description: "An Online Coding Platform with built-in code editor and live chat rooms.",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={`${inter.className} bg-[#F2F2F2] text-black`}>
+        <ClientLayout>
+          {children}
+        </ClientLayout>
+      </body>
     </html>
   );
 }

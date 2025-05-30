@@ -1,8 +1,9 @@
 "use client";
+
 import { useState } from 'react';
 import axios from 'axios';
-import {useRouter} from 'next/navigation';
-import Navbar from '../components/ui/Navbar';
+import { useRouter } from 'next/navigation';
+
 export default function AskForm() {
     const router = useRouter();
     const [tags, setTags] = useState([]);
@@ -17,12 +18,13 @@ export default function AskForm() {
         question: '',
         tags: ''
     });
-   
+
     const handleTagInput = (e) => {
         if (e.key === 'Enter' && e.target.value !== '') {
             if (tags.length < 5) {
-                setTags([...tags, e.target.value]);
-                setForm({ ...form, tags: [...tags, e.target.value] });
+                const newTags = [...tags, e.target.value];
+                setTags(newTags);
+                setForm({ ...form, tags: newTags });
                 e.target.value = '';
             } else {
                 alert("You can only add up to 5 tags.");
@@ -54,106 +56,99 @@ export default function AskForm() {
             hasWarnings = true;
         }
         setWarnings(newWarnings);
-        if (hasWarnings) {
-            return;
-        }
+        if (hasWarnings) return;
 
         const token = window.sessionStorage.getItem("token");
-        console.log(form);
         try {
-            const res = await axios.post('https://zcoder-8u3l.onrender.com/api/problem/ask', form, {
-                headers: {
-                    'Authorization': `${token}`
+            const res = await axios.post(
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/problem/ask`,
+                form,
+                {
+                    headers: { 'Authorization': `${token}` }
                 }
-            });
-            if (res.data.success) {
-                alert(`${res.data.message}`);
-                router.push('/'); // Add your desired redirect path
-            } else {
-                alert(`${res.data.message}`);
-            }
+            );
+            alert(res.data.message);
+            if (res.data.success) router.push('/');
         } catch (error) {
             console.log(error);
         }
     };
 
     return (
-        <>
-        <Navbar />
-        <div className="px-10 py-5 bg-gray-100 dark:bg-black dark:text-white" >
-            <div className="heading text-3xl font-bold mb-3 dark:text-white">Ask Question</div>
-            <div className="question-title mb-6 mt-5">
-                <label htmlFor="default-input" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                    Question Title <span className="star text-red-600 text-sm">*</span>
+        <div className="px-10 py-5 min-h-screen" style={{ backgroundColor: '#F2F2F2', color: '#000000' }}>
+            <div className="text-3xl font-bold mb-3">Ask Question</div>
+
+            <div className="mb-6 mt-5">
+                <label className="block mb-2 text-sm font-medium">
+                    Question Title <span className="text-red-600">*</span>
                 </label>
                 <input
                     type="text"
-                    id="default-input"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    className="border rounded-lg block w-full p-2.5"
+                    style={{ backgroundColor: '#FFFFFF', borderColor: '#B6B09F', color: '#000000' }}
                     onChange={(e) => setForm({ ...form, title: e.target.value })}
                 />
-                <label htmlFor="default-input" className="caution text-violet-400 text-small mt-1">
-                    Be specific and imagine you are asking a question to another person.
-                </label>
                 {warnings.title && <div className="text-red-500 text-xs font-semibold mt-1">{warnings.title}</div>}
             </div>
 
-            <label htmlFor="message" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                Detailed explanation of your problem <span className="star text-red-600 text-normal">*</span>
-            </label>
-            <textarea
-                id="message"
-                rows="4"
-                className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 h-72"
-                placeholder="Write your thoughts here..."
-                onChange={(e) => setForm({ ...form, question: e.target.value })}
-            ></textarea>
-            {warnings.question && <div className="text-red-500 text-xs font-semibold mt-1">{warnings.question}</div>}
+            <div className="mb-5">
+                <label className="block mb-2 text-sm font-medium">
+                    Explain the question in detail <span className="text-red-600">*</span>
+                </label>
+                <textarea
+                    rows="6"
+                    className="block p-2.5 w-full text-sm rounded-lg border"
+                    style={{ backgroundColor: '#FFFFFF', borderColor: '#B6B09F', color: '#000000' }}
+                    onChange={(e) => setForm({ ...form, question: e.target.value })}
+                />
+                {warnings.question && <div className="text-red-500 text-xs font-semibold mt-1">{warnings.question}</div>}
+            </div>
 
-            <div className="tags-input-container my-5">
-                <label htmlFor="tags-input" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                    Input Tags <span className="star text-red-500 text-sm">*</span>
+            <div className="my-5">
+                <label className="block mb-2 text-sm font-medium">
+                    Input Tags <span className="text-red-500">*</span>
                 </label>
                 <input
                     type="text"
-                    id="tags-input"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 mb-1"
-                    placeholder="Press enter to add tags"
+                    className="border rounded-lg block w-full p-2.5 mb-2"
+                    style={{ backgroundColor: '#FFFFFF', borderColor: '#B6B09F', color: '#000000' }}
                     onKeyDown={handleTagInput}
                 />
-
-                <div className="tags-list">
+                <div className="flex flex-wrap gap-2">
                     {tags.map((tag, index) => (
-                        <div key={index} className="inline-flex items-center bg-blue-100 text-blue-500 text-xs font-medium me-2 px-2.5 py-1.5 rounded dark:bg-blue-900 dark:text-blue-300 uppercase">
+                        <div key={index} className="flex items-center px-3 py-1 text-xs rounded-full" style={{ backgroundColor: '#EAE4D5', color: '#000000' }}>
                             {tag}
-                            <button type="button" className="ml-2 text-red-500" onClick={() => removeTag(index)}>x</button>
+                            <button onClick={() => removeTag(index)} className="ml-2 text-red-600 font-bold">x</button>
                         </div>
                     ))}
                 </div>
                 {warnings.tags && <div className="text-red-500 text-xs font-semibold mt-1">{warnings.tags}</div>}
             </div>
-            <div className="flex mb-4">
-                <div className="flex items-center h-5">
-                    <input
-                        id="helper-checkbox"
-                        aria-describedby="helper-checkbox-text"
-                        type="checkbox"
-                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                        checked={form.ispublic}
-                        onChange={(e) => setForm({ ...form, ispublic: e.target.checked })}
-                    />
-                </div>
-                <div className="ms-2 text-sm">
-                    <label htmlFor="helper-checkbox" className="font-medium text-gray-900 dark:text-gray-300">Public the Question</label>
-                    <p id="helper-checkbox-text" className="text-xs font-normal text-gray-500 dark:text-gray-400">Public questions will be shown on the dashboard of other users</p>
+
+            <div className="flex mb-4 items-start gap-3">
+                <input
+                    type="checkbox"
+                    checked={form.ispublic}
+                    onChange={(e) => setForm({ ...form, ispublic: e.target.checked })}
+                    className="w-4 h-4 rounded"
+                    style={{ accentColor: '#B6B09F' }}
+                />
+                <div className="text-sm">
+                    <label className="font-medium">Public the Question</label>
+                    <p className="text-xs text-gray-600">Public questions will be shown on the dashboard of other users</p>
                 </div>
             </div>
-            <button type="submit" className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-red-200 via-red-300 to-yellow-200 group-hover:from-red-200 group-hover:via-red-300 group-hover:to-yellow-200 dark:text-white dark:hover:text-gray-900 focus:ring-4 focus:outline-none focus:ring-red-100 dark:focus:ring-red-400 mt-2" onClick={handleSubmit} >
-                <span className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
-                    Ask a question
-                </span>
+
+            <button
+                onClick={handleSubmit}
+                className="px-6 py-2 rounded-lg text-sm font-medium"
+                style={{
+                    backgroundColor: '#B6B09F',
+                    color: '#FFFFFF'
+                }}
+            >
+                Ask a question
             </button>
         </div>
-        </>
     );
 }

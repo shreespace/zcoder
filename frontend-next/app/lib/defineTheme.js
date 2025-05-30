@@ -51,16 +51,22 @@ const monacoThemes = {
   monoindustrial: "monoindustrial",
 };
 
-const defineTheme = (theme) => {
-  return new Promise((res) => {
-    Promise.all([
-      loader.init(),
-      import(`monaco-themes/themes/${monacoThemes[theme]}.json`),
-    ]).then(([monaco, themeData]) => {
-      monaco.editor.defineTheme(theme, themeData);
-      res();
-    });
-  });
+const defineTheme = async (theme) => {
+  if (!monacoThemes[theme]) {
+    console.warn(`Theme '${theme}' not found. Falling back to default.`);
+    return;
+  }
+
+  try {
+    const monaco = await loader.init();
+    const themeModule = await import(
+      `monaco-themes/themes/${monacoThemes[theme]}.json`
+    );
+
+    monaco.editor.defineTheme(theme, themeModule);
+  } catch (err) {
+    console.error(`Failed to load theme: ${theme}`, err);
+  }
 };
 
-export { defineTheme };
+export { defineTheme, monacoThemes };

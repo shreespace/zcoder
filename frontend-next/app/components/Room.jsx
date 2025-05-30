@@ -2,149 +2,130 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
-import Navbar from '../components/ui/Navbar';
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation';
+
 const Roomcomponent = () => {
-    // const location = useRouter();
-    const [authUser, setAuthUser] = useState();
-    const searchParams = useSearchParams()
-    const id = searchParams.get('id');
-    const [room, setRoom] = useState(null);
-    const [postmsg, setPostMsg] = useState("");
-    const [msgList, setmsgList] = useState([null]);
-    const [loading, setLoading] = useState(true);
-    const chatRef = useRef(null);
-    useEffect(() => {
-        const getRoom = async () => {
-            try {
-                const res = await axios.get(`https://zcoder-8u3l.onrender.com/api/room/getroombyid?q=${id}`);
-                console.log(res.data);
-                setmsgList(res.data.message);
-                setRoom(res.data);
-                setLoading(false);
-            } catch (error) {
-                console.error("Error fetching room data:", error);
-            }
-        };
-        getRoom();
-        const getAuthUser = async () => {
-            const token = window.sessionStorage.getItem('token');
-            // console.log(token);
-            const instance = axios.create({
-                baseURL: 'https://zcoder-8u3l.onrender.com/api',
-                withCredentials: true,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': `${token}`,
-                }
-            })
-            try {
-                const res = await instance.get('/getAuth');
-                //console.log(res);
-                setAuthUser(res.data);
-            } catch (err) {
-                console.log(err);
-            }
-        }
-        getAuthUser();
-    }, [id]);
+  const [authUser, setAuthUser] = useState();
+  const searchParams = useSearchParams();
+  const id = searchParams.get('id');
+  const [room, setRoom] = useState(null);
+  const [postmsg, setPostMsg] = useState("");
+  const [msgList, setmsgList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const chatRef = useRef(null);
 
-    const socket = useMemo(() => {
-        return io("https://zcoder-8u3l.onrender.com", {
-            withCredentials: true,
-        });
-    }, []);
-
-    useEffect(() => {
-        if (!socket) return;
-        socket.emit('joinRoom', id);
-        socket.on('welcomeMsg', (msg) => {
-            console.log(msg);
-        });
-        socket.on('getmessage', (msg) => { setmsgList((prev) => [...prev, msg]); });
-
-        return () => {
-            //socket.off('welcomeMsg');
-            //socket.off('getmessage');
-            socket.disconnect();
-        };
-    }, [socket, id]);
-
-    useEffect(() => {
-        chatRef.current?.scrollIntoView();
-    }, [msgList])
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const res = await axios.post('https://zcoder-8u3l.onrender.com/api/msg/postmessage', { content: postmsg, roomId: id, sender: authUser._id });
-            setmsgList((prev) => [...prev, res.data]);
-            // console.log(res.data);
-            socket.emit('newmessage', { msg: res.data, id });
-            setPostMsg("");
-        } catch (err) {
-            console.log(err)
-        }
-        setPostMsg("");
+  useEffect(() => {
+    const getRoom = async () => {
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/room/getroombyid?q=${id}`);
+        setmsgList(res.data.message);
+        setRoom(res.data);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching room data:", error);
+      }
     };
 
-    const scrollToBottom = () => {
-        if (chatRef.current) {
-            chatRef.current.scrollTop = chatRef.current.scrollHeight;
-        }
+    const getAuthUser = async () => {
+      const token = window.sessionStorage.getItem('token');
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/getAuth`, {
+          headers: { 'Authorization': `${token}` }
+        });
+        setAuthUser(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    getRoom();
+    getAuthUser();
+  }, [id]);
+
+  const socket = useMemo(() => {
+    return io(process.env.NEXT_PUBLIC_SOCKET_URL, { withCredentials: true });
+  }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+    socket.emit('joinRoom', id);
+    socket.on('welcomeMsg', (msg) => console.log(msg));
+    socket.on('getmessage', (msg) => {
+      setmsgList(prev => [...prev, msg]);
+    });
+
+    return () => socket.disconnect();
+  }, [socket, id]);
+
+  useEffect(() => {
+    chatRef.current?.scrollIntoView();
+  }, [msgList]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/msg/postmessage`, {
+        content: postmsg,
+        roomId: id,
+        sender: authUser._id,
+      });
+      setmsgList(prev => [...prev, res.data]);
+      socket.emit('newmessage', { msg: res.data, id });
+      setPostMsg("");
+    } catch (err) {
+      console.log(err);
     }
+  };
 
+  return (
+    <div className="w-full min-h-screen p-4" style={{ backgroundColor: '#F2F2F2', color: '#000000' }}>
+      <div className="flex flex-col md:flex-row gap-6">
+        {/* Chat Box */}
+        <div className="md:w-3/4">
+          <h2 className="text-2xl font-semibold mb-4">{room?.roomName}</h2>
+          <div className="w-full h-[65vh] overflow-y-auto border border-[#B6B09F] rounded-xl p-4 bg-white shadow-sm mb-4">
+            {!loading && msgList.map((msg, idx) => (
+              <div
+                key={idx}
+                className={`px-4 py-2 w-[calc(50%-1rem)] mb-4 text-sm rounded-xl shadow-sm ${
+                  authUser?.name === msg?.sender?.name
+                    ? "ml-auto bg-[#B6B09F] text-white"
+                    : "bg-[#EAE4D5] text-black"
+                }`}
+              >
+                <p className="font-semibold capitalize">{msg?.sender?.name}</p>
+                <p className="break-words mt-1">{msg?.content}</p>
+              </div>
+            ))}
+            <div ref={chatRef}></div>
+          </div>
 
-    return (
-        <>
-       
-        <Navbar />
-        <div className='w-full h-fit bg-black text-white p-2'>
-            <div className='w-full h-screen flex box-border'>
-                <div className='w-3/4 h-3/4 mt-8'>
-                    <h2 className='text-xl'>{room && room.roomName}</h2>
-                    <div className='w-full h-full overflow-y-auto p-4 border-white  border-2 rounded-xl mb-[1rem]'>
-                        {!loading && msgList !== null ? msgList.map((msg, id) => (
-                            <>
-                                <div key={id} className={`bg-cyan-800 px-2 py-1 h-fit ${authUser && authUser.name === msg.sender.name ? 'ml-auto rounded-s-xl rounded-b-xl' : 'rounded-e-xl rounded-es-xl'} leading-1.5  mb-4 w-[calc(50%-2rem)] hover:bg-cyan-500`}>
-                                    <p className={`text-sm font-semibold text-gray-900 dark:text-white capitalize `}>{msg && msg.sender.name}</p>
-                                    <p style={{ 'wordWrap': 'break-word' }} className='w-full text-sm font-normal py-2.5 text-gray-900 dark:text-white'>{msg && msg.content}</p>
-                                </div>
-                            </>
-                        )) : ''}
-                        {/*{msgList && msgList.map((msg, id) => (
-                            console.log(msg)
-                        ))
-                            }*/}
-                        <div ref={chatRef}></div>
-                    </div>
-                    <form onSubmit={handleSubmit} className='flex items-center'>
-                        <input
-                            type='text'
-                            placeholder='type message'
-                            value={postmsg}
-                            className='text-black px-2 w-1/2 py-1  outline-none border-4 rounded-md focus:border-green-600  mr-[1rem]'
-                            onChange={(e) => setPostMsg(e.target.value)}
-                        />
-                        <input className='bg-green-600 cursor-pointer hover:bg-green-800 px-4 py-1 rounded-md w-fit h-fit' type='submit' value='Post' />
-                    </form>
-                </div>
-                <div className='w-1/4 h-3/4 mt-12 mx-[1rem] border-white border-2 rounded-lg overflow-y-auto p-2'>
-                    <p>Room Members</p>
-                    {room && room.members.map((user, id) => (
-                        <p key={id}>{user.name}</p>
-                    ))}
-                </div>
-            </div>
-
+          <form onSubmit={handleSubmit} className="flex gap-3 items-center">
+            <input
+              type="text"
+              placeholder="Type message..."
+              value={postmsg}
+              onChange={(e) => setPostMsg(e.target.value)}
+              className="flex-grow px-4 py-2 rounded-lg border border-[#B6B09F] bg-white text-black focus:outline-none shadow-sm"
+            />
+            <input
+              type="submit"
+              value="Post"
+              className="px-5 py-2 rounded-lg bg-[#B6B09F] text-white hover:opacity-90 cursor-pointer shadow-md"
+            />
+          </form>
         </div>
-       
-            
 
-        </>
-
-    );
+        {/* Member List */}
+        <div className="md:w-1/4 border border-[#B6B09F] rounded-xl p-4 bg-white shadow-sm h-[65vh] overflow-y-auto">
+          <h3 className="text-lg font-semibold mb-2">Room Members</h3>
+          {room?.members?.map((user, idx) => (
+            <p key={idx} className="text-sm mb-1">{user.name}</p>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Roomcomponent;

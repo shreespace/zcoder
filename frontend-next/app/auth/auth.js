@@ -1,6 +1,8 @@
-import axios from "axios";
-import { useRouter } from "next/navigation";
+"use client";
+
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import axios from "axios";
 
 const auth = (Component) => {
   const Auth = (props) => {
@@ -10,30 +12,34 @@ const auth = (Component) => {
     useEffect(() => {
       const token = window.sessionStorage.getItem("token");
       if (!token) {
-        router.push("/user/login");
-      } else {
-        axios
-          .get("https://zcoder-8u3l.onrender.com/api/getAuth", {
-            headers: {
-                'Authorization': `${token}`,
-            },
-          })
-          .then((response) => {
-            setLoading(false);
-          })
-          .catch((error) => {
-            router.push("/user/login");
-          });
+        router.replace("/user/login");
+        return;
       }
+
+      axios
+        .get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/getAuth`, {
+          headers: { Authorization: `${token}` },
+        })
+        .then(() => {
+          setLoading(false);
+        })
+        .catch(() => {
+          router.replace("/user/login");
+        });
     }, [router]);
 
     if (loading) {
-      return (<h1>Loading...</h1>);
+      return (
+        <div className="flex justify-center items-center h-screen">
+          <p className="text-gray-600 text-sm">Authenticating...</p>
+        </div>
+      );
     }
 
-    return (<Component {...props} />);
+    return <Component {...props} />;
   };
 
   return Auth;
 };
+
 export default auth;
